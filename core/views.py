@@ -11,7 +11,7 @@ from .serializers import (
 )
 from .permissions import IsAuthorOrReadOnly
 from django.db.models import Sum, Count
-
+from rest_framework import filters as drf_filters
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -40,17 +40,22 @@ class CommunityViewSet(viewsets.ModelViewSet):
 
 class PostViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
-    filter_backends = [filters.SearchFilter]
+    filter_backends = [drf_filters.SearchFilter, drf_filters.OrderingFilter]
     search_fields = ['title', 'body']
+    ordering_fields = ['created_at', 'score_agg']
+    ordering = ['-created_at']
 
     def get_queryset(self):
-        qs = Post.objects.select_related('author', 'community').annotate(
+        qs = Post.objects.select_related('author', 'community').prefetch_related('votes').annotate(
             score_agg=Sum('votes__value'),
             comment_count_agg=Count('comments', distinct=True),
         )
         community_name = self.request.query_params.get('community')
+        author_name = self.request.query_params.get('author')
         if community_name:
             qs = qs.filter(community__name=community_name)
+        if author_name:
+            qs = qs.filter(author__username=author_name)
         return qs
 
     def get_serializer_class(self):
