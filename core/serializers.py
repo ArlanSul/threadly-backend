@@ -62,6 +62,14 @@ class PostListSerializer(serializers.ModelSerializer):
         fields = ['id', 'community', 'author', 'title', 'body', 'image',
                   'created_at', 'score', 'comment_count']
         read_only_fields = ['author']
+        my_vote = serializers.SerializerMethodField()
+
+        def get_my_vote(self, obj):
+            request = self.context.get('request')
+            if not request or not request.user.is_authenticated:
+                return None
+            vote = obj.votes.filter(user=request.user).first()
+            return vote.value if vote else None
 
     def get_score(self, obj):
         return sum(v.value for v in obj.votes.all())
@@ -78,6 +86,14 @@ class CommentSerializer(serializers.ModelSerializer):
         model = Comment
         fields = ['id', 'post', 'author', 'parent', 'body', 'created_at', 'score', 'replies']
         read_only_fields = ['author']
+        my_vote = serializers.SerializerMethodField()
+
+        def get_my_vote(self, obj):
+            request = self.context.get('request')
+            if not request or not request.user.is_authenticated:
+                return None
+            vote = obj.votes.filter(user=request.user).first()
+            return vote.value if vote else None
 
     def get_score(self, obj):
         return sum(v.value for v in obj.votes.all())
