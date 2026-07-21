@@ -10,6 +10,7 @@ from .serializers import (
     PostDetailSerializer, CommentSerializer, VoteSerializer, 
 )
 from .permissions import IsAuthorOrReadOnly
+from django.db.models import Sum, Count
 
 
 class RegisterView(generics.CreateAPIView):
@@ -43,7 +44,10 @@ class PostViewSet(viewsets.ModelViewSet):
     search_fields = ['title', 'body']
 
     def get_queryset(self):
-        qs = Post.objects.all()
+        qs = Post.objects.select_related('author', 'community').annotate(
+            score_agg=Sum('votes__value'),
+            comment_count_agg=Count('comments', distinct=True),
+        )
         community_name = self.request.query_params.get('community')
         if community_name:
             qs = qs.filter(community__name=community_name)
@@ -62,7 +66,10 @@ class CommentViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsAuthorOrReadOnly]
 
     def get_queryset(self):
-        qs = Comment.objects.all()
+        qs = Post.objects.select_related('author', 'community').annotate(
+            score_agg=Sum('votes__value'),
+            comment_count_agg=Count('comments', distinct=True),
+        )
         post_id = self.request.query_params.get('post')
         if post_id:
             qs = qs.filter(post_id=post_id)

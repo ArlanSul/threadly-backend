@@ -54,8 +54,8 @@ class CommunitySerializer(serializers.ModelSerializer):
 class PostListSerializer(serializers.ModelSerializer):
     author = UserSerializer(read_only=True)
     community = serializers.SlugRelatedField(slug_field='name', queryset=Community.objects.all())
-    score = serializers.SerializerMethodField()
-    comment_count = serializers.SerializerMethodField()
+    score = serializers.IntegerField(source='score_agg', default=0, read_only=True)
+    comment_count = serializers.IntegerField(source='comment_count_agg', default=0, read_only=True)
 
     class Meta:
         model = Post
