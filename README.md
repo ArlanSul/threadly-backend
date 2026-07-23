@@ -2,8 +2,8 @@
 
 A Reddit-style community platform API, built with Django REST Framework. Users can create communities, post within them, leave nested (infinitely-deep) comments, and upvote/downvote posts and comments.
 
-**Live API:** https://your-app.up.railway.app/api/
-**Frontend repo:** https://github.com/your-username/threadly-frontend
+**Live API:** https://threadly-backend.up.railway.app
+**Frontend repo:** https://github.com/ArlanSul/threadly-frontend
 
 ## Features
 
